@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulateur Interactif d'Algorithmes de Tri et de Recherche</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <!-- Hero Header -->
+    <header>
+      <div class="header-top-bar">
+        <div class="header-badge">✨ Simulation Pédagogique Active</div>
+        <button id="btn-audio-toggle" class="audio-toggle-btn" :class="{ muted: !soundEnabled }"
+          title="Activer / Désactiver le retour audio algorithmique" @click="toggleSound">
+          <span id="audio-icon">{{ soundEnabled ? '🔊' : '🔇' }}</span>
+          <span id="audio-label">{{ soundEnabled ? 'Son Activé' : 'Son Coupé' }}</span>
+        </button>
+      </div>
+      <h1>Simulateur d'Algorithmes de Tri et de Recherche</h1>
+      <p>Visualisez concrètement les mécaniques internes des Tris et des Recherches avec retour sensoriel, animations
+        fluides et outil d'inspection au survol.</p>
+    </header>
+
+    <!-- Main Mode Segmented Control -->
+    <div class="category-selector-container">
+      <div class="category-tabs">
+        <button class="cat-tab" :class="{ active: currentMode === 'sort' }" @click="switchMode('sort')">
+          <span class="tab-icon">📊</span>
+          <span>Mode : Algorithmes de Tri</span>
+        </button>
+        <button class="cat-tab" :class="{ active: currentMode === 'search' }" @click="switchMode('search')">
+          <span class="tab-icon">🔍</span>
+          <span>Mode : Algorithmes de Recherche</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Level 2 Specific Algorithm Sub-Tabs -->
+    <div class="algo-selector-container">
+      <!-- Sorting Tabs -->
+      <div class="specific-tabs" id="tabs-sort" v-show="currentMode === 'sort'">
+        <button class="spec-tab" :class="{ active: currentAlgo === 'bubble' }" data-algo="bubble"
+          @click="switchAlgo('bubble')">
+          <span class="tab-icon">🫧</span>
+          <span>Tri à bulles</span>
+          <span class="badge-stat badge-warning" style="font-size: 0.75rem; padding: 2px 6px;">Optimisé</span>
+        </button>
+        <button class="spec-tab" :class="{ active: currentAlgo === 'selection' }" data-algo="selection"
+          @click="switchAlgo('selection')">
+          <span class="tab-icon">🎯</span>
+          <span>Tri par sélection</span>
+        </button>
+        <button class="spec-tab" :class="{ active: currentAlgo === 'insertion' }" data-algo="insertion"
+          @click="switchAlgo('insertion')">
+          <span class="tab-icon">🃏</span>
+          <span>Tri par insertion</span>
+        </button>
+      </div>
+
+      <!-- Searching Tabs -->
+      <div class="specific-tabs" id="tabs-search" v-show="currentMode === 'search'">
+        <button class="spec-tab" :class="{ active: currentAlgo === 'sequential' }" data-algo="sequential"
+          @click="switchAlgo('sequential')">
+          <span class="tab-icon">🔎</span>
+          <span>Recherche Séquentielle</span>
+        </button>
+        <button class="spec-tab" :class="{ active: currentAlgo === 'binary' }" data-algo="binary"
+          @click="switchAlgo('binary')">
+          <span class="tab-icon">⚡</span>
+          <span>Recherche Dichotomique</span>
+          <span class="badge-stat badge-success" style="font-size: 0.75rem; padding: 2px 6px;">Tableau Trié
+            Requis</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-card">
+      <div class="control-group">
+        <button id="btn-random" class="btn btn-secondary" title="Générer un nouveau tableau aléatoire"
+          @click="onRandom">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+            </path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          Nouveau Tableau
+        </button>
+
+        <!-- Sorting Presets Block -->
+        <div class="presets-container" id="presets-sort" v-show="currentMode === 'sort'">
+          <span class="preset-label">Cas types :</span>
+          <button class="btn-preset" @click="onPreset('sorted')" title="Tableau déjà trié dans l'ordre croissant">📈
+            Déjà trié</button>
+          <button class="btn-preset" @click="onPreset('reversed')"
+            title="Tableau trié dans l'ordre décroissant (Pire cas)">📉 Inversé</button>
+          <button class="btn-preset" @click="onPreset('nearly')"
+            title="Tableau avec seulement deux éléments mal placés">⚠️ Presque trié</button>
+        </div>
+
+        <!-- Searching Target Controls Block -->
+        <div class="search-target-box" id="controls-search-target" v-show="currentMode === 'search'">
+          <label for="input-target">Cible recherchée :</label>
+          <input type="number" id="input-target" class="custom-input style-target-input" :value="searchTarget"
+            @input="onTargetChange($event.target.value)">
+          <button id="btn-target-present" class="btn-preset" style="background: #10B981; color: white;"
+            @click="onTargetPresent" title="Prendre une cible qui existe dans le tableau">Présente ✅</button>
+          <button id="btn-target-absent" class="btn-preset" style="background: #EF4444; color: white;"
+            @click="onTargetAbsent" title="Prendre une cible qui n'existe pas dans le tableau">Absente ❌</button>
+        </div>
+      </div>
+
+      <div class="control-group-divider"></div>
+
+      <div class="control-group">
+        <label for="slider-size">Éléments : <span id="label-size" style="color: var(--primary); font-size: 1.15rem;">{{
+            arraySize }}</span></label>
+        <input type="range" id="slider-size" min="5" max="15" :value="arraySize"
+          @input="onSizeChange($event.target.value)">
+      </div>
+
+      <div class="control-group-divider"></div>
+
+      <div class="control-group">
+        <div class="custom-input-container">
+          <input type="text" id="custom-array-input" class="custom-input" style="width: 210px;"
+            placeholder="ex: 12, 5, 8, 1, 15" title="Entrez des nombres séparés par des virgules" v-model="customInput"
+            @keypress.enter="onCustomArray">
+          <button id="btn-custom" class="btn btn-secondary" @click="onCustomArray"
+            title="Appliquer le tableau personnalisé">Appliquer</button>
+        </div>
+      </div>
+
+      <div class="control-group" style="width: 100%; justify-content: flex-end; margin-top: 8px;">
+        <label for="slider-speed">Vitesse d'animation :</label>
+        <input type="range" id="slider-speed" min="1" max="5" :value="speedLevel"
+          @input="onSpeedChange($event.target.value)" title="Vitesse de lecture automatique">
+      </div>
+    </div>
+
+    <!-- Dynamic Toast Banner for automatic sorting -->
+    <div id="toast-container" style="text-align: center; margin-bottom: 20px;"></div>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard">
+      <!-- Main Visualization Content -->
+      <div class="visualization-card">
+
+        <!-- Pedagogical Commentary & Playback Controls -->
+        <div class="commentary-card">
+          <div class="comment-header">
+            <span>Journal des Explications Algorithmiques en Direct</span>
+            <div class="live-indicator">
+              <div class="live-dot"></div>
+              <span style="color: #10B981;">TELEMETRIE PÉDAGOGIQUE</span>
+            </div>
+          </div>
+
+          <div class="comment-text" id="comment-text" v-html="currentStep ? currentStep.comment : defaultCommentText">
+          </div>
+
+          <div class="playback-controls">
+            <div class="step-progress-container">
+              <input type="range" id="slider-step" class="step-progress-bar" min="0" :max="simulationSteps.length - 1"
+                :value="currentStepIndex" @input="renderStep(parseInt($event.target.value))">
+              <span class="step-counter"><span id="step-current">{{ currentStepIndex }}</span> / <span
+                  id="step-total">{{ simulationSteps.length > 0 ? simulationSteps.length - 1 : 0 }}</span></span>
+            </div>
+
+            <div class="playback-buttons">
+              <button id="btn-start" class="btn btn-secondary" title="Début de la simulation"
+                :disabled="currentStepIndex === 0" @click="goToStart">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                  <line x1="5" y1="19" x2="5" y2="5"></line>
+                </svg>
+              </button>
+              <button id="btn-prev" class="btn btn-secondary" title="Étape précédente"
+                :disabled="currentStepIndex === 0" @click="stepPrev">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                </svg>
+              </button>
+              <button id="btn-play" class="btn" :class="isPlaying ? 'btn-secondary' : 'btn-primary'"
+                style="padding-left: 32px; padding-right: 32px; font-size: 1.05rem;" @click="togglePlay">
+                <svg id="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" :style="{ display: isPlaying ? 'none' : 'inline-block' }">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <svg id="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" :style="{ display: isPlaying ? 'inline-block' : 'none' }">
+                  <rect x="6" y="4" width="4" height="16"></rect>
+                  <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+                <span id="label-play">{{ isPlaying ? 'Pause' : 'Lecture' }}</span>
+              </button>
+              <button id="btn-next" class="btn btn-secondary" title="Étape suivante"
+                :disabled="currentStepIndex >= simulationSteps.length - 1" @click="stepNext">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                </svg>
+              </button>
+              <button id="btn-end" class="btn btn-secondary" title="Fin de la simulation"
+                :disabled="currentStepIndex >= simulationSteps.length - 1" @click="goToEnd">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                  <line x1="19" y1="5" x2="19" y2="19"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- The High-Tech Arena -->
+        <div class="arena" id="arena-box">
+
+          <!-- Floating Pointers Row (For Searching Algorithms and Selection Sort) -->
+          <div class="pointers-row" id="pointers-row">
+            <!-- Binary Search -->
+            <div id="pointer-g" class="algo-pointer pointer-g" :style="binaryPointerStyle('G', 0)"><span>G</span>
+              (Gauche)</div>
+            <div id="pointer-m" class="algo-pointer pointer-m" :style="binaryPointerStyle('M', 1)"><span>M</span>
+              (Milieu)</div>
+            <div id="pointer-d" class="algo-pointer pointer-d" :style="binaryPointerStyle('D', 2)"><span>D</span>
+              (Droite)</div>
+            <!-- Sequential Search -->
+            <div id="pointer-i" class="algo-pointer pointer-i" :style="seqPointerStyle"><span>i</span> (Index)</div>
+            <!-- Selection Sort -->
+            <div id="pointer-min" class="algo-pointer pointer-min" :style="selMinPointerStyle">👑 Min Provisoire</div>
+            <div id="pointer-runner" class="algo-pointer pointer-runner" :style="selRunnerPointerStyle">🔎 Actuel (j)
+            </div>
+          </div>
+
+          <!-- Inner container to hold precisely array and temp zone -->
+          <div class="array-inner-container" id="array-inner-container" :style="{ width: totalWidth + 'px' }">
+
+            <!-- Temporary key zone for Insertion Sort -->
+            <div class="temp-zone" id="temp-zone" :class="{ visible: currentStep && currentStep.tempItem }">
+              <span class="temp-zone-title">Variable Clé</span>
+            </div>
+
+            <!-- Array Elements -->
+            <div v-for="(item, idx) in currentArray" :key="item.id" v-show="item.val !== null" class="array-item"
+              :id="item.id" :class="getItemState(item, idx)"
+              :style="{ width: ITEM_WIDTH + 'px', left: getItemLeft(idx) + 'px', bottom: '35px' }"
+              :data-tooltip="getItemTooltip(item, idx)">
+              <div class="bar-visual" :style="{ height: getItemHeight(item) + 'px' }"></div>
+              <div class="box-value">{{ item.val }}</div>
+            </div>
+
+            <!-- Temp item (Insertion Sort) -->
+            <div v-if="currentStep && currentStep.tempItem" class="array-item temp"
+              :style="{ width: ITEM_WIDTH + 'px', left: tempItemLeft + 'px', bottom: '244px' }"
+              :data-tooltip="'Clé en mémoire | Valeur : ' + (currentStep.tempItem ? currentStep.tempItem.val : '')">
+              <div class="bar-visual" :style="{ height: tempItemHeight + 'px' }"></div>
+              <div class="box-value">{{ currentStep.tempItem ? currentStep.tempItem.val : '' }}</div>
+            </div>
+
+            <!-- Array Indices -->
+            <div class="array-indices" id="array-indices"
+              :style="{ width: totalWidth + 'px', position: 'absolute', bottom: '0', left: '0' }">
+              <div v-for="(item, idx) in currentArray" :key="'idx-' + idx" class="index-marker"
+                :style="{ width: ITEM_WIDTH + 'px', left: getItemLeft(idx) + 'px' }">[{{ idx }}]</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sorting Legends -->
+        <div class="legend" id="legend-sort" v-show="currentMode === 'sort'">
+          <div class="legend-item">
+            <div class="legend-box sorted"></div> Partie triée
+          </div>
+          <div class="legend-item">
+            <div class="legend-box unsorted"></div> Partie non triée
+          </div>
+          <div class="legend-item">
+            <div class="legend-box active"></div> Élément comparé
+          </div>
+          <div class="legend-item" id="legend-selection-min" v-show="isSelectionAlgo">
+            <div class="legend-box selection-min"></div> Minimum Provisoire
+          </div>
+          <div class="legend-item">
+            <div class="legend-box action"></div> Permutation / Décalage
+          </div>
+          <div id="legend-temp" class="legend-item" v-show="isInsertionAlgo">
+            <div class="legend-box temp"></div> Clé (Mémoire)
+          </div>
+        </div>
+
+        <!-- Searching Legends -->
+        <div class="legend" id="legend-search" v-show="currentMode === 'search'">
+          <div class="legend-item">
+            <div class="legend-box active"></div> Élément inspecté (i / M)
+          </div>
+          <div class="legend-item">
+            <div class="legend-box unsorted"></div> Zone de recherche active
+          </div>
+          <div class="legend-item">
+            <div class="legend-box" style="background: #334155; border: 2px solid #475569;"></div> Zone éliminée
+          </div>
+          <div class="legend-item">
+            <div class="legend-box sorted"></div> Cible trouvée 🎉
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar Info -->
+      <div class="sidebar">
+
+        <!-- IDE Code Editor Card -->
+        <div class="ide-card">
+          <div class="ide-topbar">
+            <div class="ide-window-buttons">
+              <div class="ide-dot ide-dot-red"></div>
+              <div class="ide-dot ide-dot-yellow"></div>
+              <div class="ide-dot ide-dot-green"></div>
+            </div>
+            <span class="ide-title" id="ide-title-text">{{ algoData.title }}</span>
+            <button id="btn-copy-code" class="btn-copy" @click="copyCode"
+              title="Copier le pseudocode dans le presse-papier">📋 Copier</button>
+          </div>
+          <div class="pseudocode-box" id="pseudocode-box">
+            <div v-for="(line, idx) in algoData.code" :key="'code-' + idx" class="code-line" :id="'code-line-' + idx"
+              :class="{ active: currentStep && currentStep.highlightCode === idx }">
+              <span class="line-number">{{ idx + 1 }}</span>
+              <span>{{ line }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Algorithm Description Card -->
+        <div class="info-card">
+          <h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Fiche d'Identité
+          </h3>
+
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="stat-label">Pire cas</span>
+              <span id="stat-worst" class="badge-stat badge-danger">{{ algoData.worst }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Cas moyen</span>
+              <span id="stat-avg" class="badge-stat badge-warning">{{ algoData.avg }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Meilleur cas</span>
+              <span id="stat-best" class="badge-stat badge-success">{{ algoData.best }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label" id="label-stat-4">{{ algoData.labelStat4 }}</span>
+              <span id="stat-stable" class="badge-stat badge-neutral">{{ algoData.stat4 }}</span>
+            </div>
+          </div>
+
+          <div class="pedagogical-notes" id="pedagogical-notes" v-html="algoData.notes">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+
+</html>
