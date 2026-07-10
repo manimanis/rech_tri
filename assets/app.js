@@ -23,13 +23,17 @@ const ALGO_METADATA = {
         worst: 'O(n²)', avg: 'O(n²)', best: 'O(n²)', labelStat4: 'Tri stable', stat4: 'Non',
         notes: "Le <strong>Tri par sélection</strong> divise le tableau en une partie triée (à gauche) et non triée (à droite).<br><br>👉 <strong>Clarté Visuelle</strong> : Observez la différence entre la colonne en <strong>Cyan</strong> (le <em>Minimum Provisoire</em> trouvé jusqu'ici) et la colonne en <strong>Orange</strong> (l'élément actuellement inspecté par la boucle).",
         code: [
-            "Pour i ← 0 à (N - 2) :",
-            "    Min ← i",
-            "    Pour j ← (i + 1) à (N - 1) :",
-            "        Si T[j] < T[Min] :",
-            "            Min ← j  // Nouveau minimum !",
-            "    Si Min ≠ i :",
-            "        Permuter(T[i], T[Min])"
+            "Pour i de 0 à (N - 2) Faire",
+            "  Min ← i",
+            "  Pour j de (i + 1) à (N - 1) Faire",
+            "    Si T[j] < T[Min] Alors",
+            "      Min ← j  // Nouveau minimum !",
+            "    Fin Si",
+            "  Fin Pour",
+            "  Si Min ≠ i Alors",
+            "    Permuter(T[i], T[Min])",
+            "  Fin Si",
+            "Fin Pour"
         ]
     },
     insertion: {
@@ -37,13 +41,15 @@ const ALGO_METADATA = {
         worst: 'O(n²)', avg: 'O(n²)', best: 'O(n)', labelStat4: 'Tri stable', stat4: 'Oui',
         notes: "Le <strong>Tri par insertion</strong> construit progressivement le tableau trié à gauche. On sélectionne une 'Clé' (mise en mémoire temporaire) et on la fait glisser à sa place en décalant vers la droite les éléments plus grands.<br><br>👉 <em>Observation pédagogique</em> : C'est la méthode naturelle qu'utilise un joueur de cartes pour trier sa main.",
         code: [
-            "Pour i ← 1 à (N - 1) :",
-            "    Cle ← T[i]",
-            "    j ← i - 1",
-            "    TQ (j ≥ 0 et T[j] > Cle) :",
-            "        T[j+1] ← T[j]  // Décalage",
-            "        j ← j - 1",
-            "    T[j+1] ← Cle  // Insertion"
+            "Pour i de 1 à (N - 1) Faire",
+            "  Cle ← T[i]",
+            "  j ← i - 1",
+            "  Tant Que (j ≥ 0 et T[j] > Cle) Faire",
+            "    T[j+1] ← T[j]  // Décalage",
+            "    j ← j - 1",
+            "  Fin Tant Que",
+            "  T[j+1] ← Cle  // Insertion",
+            "Fin Pour"
         ]
     },
     sequential: {
@@ -51,10 +57,13 @@ const ALGO_METADATA = {
         worst: 'O(n)', avg: 'O(n)', best: 'O(1)', labelStat4: 'Mémoire extra', stat4: 'O(1)',
         notes: "La <strong>Recherche Séquentielle</strong> inspecte chaque case du tableau une par une, de la première à la dernière.<br><br>👉 <strong>Avantage majeur</strong> : Fonctionne parfaitement sur n'importe quel tableau, même totalement désordonné.<br>👉 <strong>Inconvénient</strong> : Lenteur sur de très gros volumes de données.",
         code: [
-            "Pour i ← 0 à (N - 1) :",
-            "    Si T[i] = Cible :",
-            "        Retourne i  // Trouvé !",
-            "Retourne -1  // Introuvable"
+            "p ← -1",
+            "i ← 0",
+            "Tant Que p = -1 et i < N Faire",
+            "  Si T[i] = Cible Alors p ← i Fin Si",
+            "  i ← i + 1",
+            "Fin Tant Que",
+            "Retourner p"
         ]
     },
     binary: {
@@ -64,15 +73,18 @@ const ALGO_METADATA = {
         code: [
             "G ← 0",
             "D ← N - 1",
-            "TQ (G ≤ D) :",
-            "    M ← PartieEntière((G + D) / 2)",
-            "    Si T[M] = Cible :",
-            "        Retourne M  // Trouvé !",
-            "    Sinon Si T[M] < Cible :",
-            "        G ← M + 1  // Chercher à droite",
-            "    Sinon :",
-            "        D ← M - 1  // Chercher à gauche",
-            "Retourne -1  // Introuvable"
+            "p ← -1",
+            "Tant Que p = -1 et G ≤ D Faire",
+            "  M ← (G + D) div 2",
+            "  Si T[M] = Cible Alors",
+            "    p ← M",
+            "  Sinon Si T[M] < Cible Alors",
+            "    G ← M + 1",
+            "  Sinon",
+            "    D ← M - 1",
+            "  Fin Si",
+            "Fin Tant Que",
+            "Retourner p"
         ]
     }
 };
@@ -258,6 +270,32 @@ const app = createApp({
             if (soundEnabled.value) playTone(20, 'found');
         }
 
+        const furElise = [
+            // Partie A
+            659.25, 622.25, 659.25, 622.25, 659.25, 493.88, 587.33, 523.25, 440.00,
+            261.63, 329.63, 440.00, 493.88,
+            329.63, 415.30, 493.88, 523.25,
+            329.63, 659.25, 622.25, 659.25, 622.25, 659.25, 493.88, 587.33, 523.25, 440.00,
+            261.63, 329.63, 440.00, 493.88,
+            329.63, 523.25, 493.88, 440.00,
+            
+            // Partie B
+            493.88, 523.25, 587.33, 659.25,
+            392.00, 698.46, 659.25, 587.33,
+            349.23, 659.25, 587.33, 523.25,
+            329.63, 587.33, 523.25, 493.88,
+            329.63, 659.25,
+            
+            // Retour Partie A
+            659.25, 622.25, 659.25, 622.25, 659.25, 493.88, 587.33, 523.25, 440.00,
+            261.63, 329.63, 440.00, 493.88,
+            329.63, 415.30, 493.88, 523.25,
+            329.63, 659.25, 622.25, 659.25, 622.25, 659.25, 493.88, 587.33, 523.25, 440.00,
+            261.63, 329.63, 440.00, 493.88,
+            329.63, 523.25, 493.88, 440.00
+        ];
+        let melodyIndex = 0;
+
         function playTone(val, toneType) {
             if (!soundEnabled.value) return;
             try {
@@ -265,28 +303,21 @@ const app = createApp({
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                const freq = 200 + (val * 14);
+                
+                const freq = furElise[melodyIndex % furElise.length];
+                melodyIndex++;
+                
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                if (toneType === 'swap') {
-                    osc.type = 'triangle';
-                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-                } else if (toneType === 'found') {
-                    osc.type = 'square';
-                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                } else if (toneType === 'fail') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                    osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
-                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                } else {
-                    osc.type = 'sine';
-                    gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-                }
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (toneType === 'fail' ? 0.3 : 0.12));
+                osc.type = 'sine';
+                
+                // Un gain fixe pour toutes les notes, avec une chute pour séparer les notes
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + (toneType === 'fail' ? 0.3 : 0.12));
+                osc.stop(audioCtx.currentTime + 0.15);
             } catch (e) { /* ignore */ }
         }
 
@@ -362,6 +393,7 @@ const app = createApp({
 
         // ---- Génération des simulations ----
         function runAlgorithm() {
+            melodyIndex = 0;
             simulationSteps.value = [];
             let arr = cloneArray(initialValues.value);
 
@@ -418,29 +450,29 @@ const app = createApp({
             let limite = n - 1;
 
             pushStep(arr, sortedSet, [], [], 'compare', 15,
-                `Initialisation : on active <strong>PermutationEffectuée = Vrai</strong> et la <strong>Limite = ${limite}</strong>.`, 0);
+                `Début de la boucle : on répète le parcours tant que le tableau n'est pas trié. (N = ${limite + 1})`, 0);
 
             while (swapped && limite >= 1) {
                 swapped = false;
                 pushStep(arr, sortedSet, [], [], 'compare', 20,
-                    `Nouvelle passe. On initialise <strong>PermutationEffectuée = Faux</strong>.`, 3);
+                    `Nouvelle passe. On suppose que le tableau est trié : on initialise <strong>trié ← Vrai</strong>.`, 1);
 
                 for (let j = 0; j < limite; j++) {
                     pushStep(arr, sortedSet, [j, j + 1], [], 'compare', arr[j].val,
-                        `On compare <strong>${arr[j].val}</strong> (index ${j}) avec <strong>${arr[j+1].val}</strong> (index ${j+1}).`, 5);
+                        `On compare <strong>T[${j}]</strong> (${arr[j].val}) avec <strong>T[${j+1}]</strong> (${arr[j+1].val}).`, 3);
 
                     if (arr[j].val > arr[j + 1].val) {
                         swapped = true;
                         pushStep(arr, sortedSet, [], [j, j + 1], 'swap', Math.max(arr[j].val, arr[j + 1].val),
-                            `Comme <strong>${arr[j].val} > ${arr[j+1].val}</strong>, on effectue une permutation.`, 6);
+                            `Comme <strong>${arr[j].val} > ${arr[j+1].val}</strong>, on effectue une permutation.`, 4);
                         const temp = arr[j];
                         arr[j] = arr[j + 1];
                         arr[j + 1] = temp;
                         pushStep(arr, sortedSet, [], [j, j + 1], 'compare', 25,
-                            `Permutation réalisée et on note <strong>PermutationEffectuée = Vrai</strong>.`, 7);
+                            `Permutation réalisée, le tableau n'était donc pas totalement trié : on note <strong>trié ← Faux</strong>.`, 5);
                     } else {
                         pushStep(arr, sortedSet, [j, j + 1], [], 'compare', arr[j + 1].val,
-                            `<strong>${arr[j].val} ≤ ${arr[j+1].val}</strong>, ils sont dans le bon ordre.`, 5);
+                            `<strong>${arr[j].val} ≤ ${arr[j+1].val}</strong>, ils sont dans le bon ordre.`, 3);
                     }
                 }
 
@@ -449,11 +481,11 @@ const app = createApp({
                 if (!swapped) {
                     for (let k = 0; k <= limite; k++) sortedSet.add(k);
                     pushStep(arr, sortedSet, [], [], 'found', 40,
-                        `💡 <strong>Optimisation activée</strong> : Aucune permutation n'a eu lieu pendant toute cette passe. Le tableau est donc déjà entièrement trié ! On s'arrête instantanément.`, 2);
+                        `💡 <strong>Optimisation activée</strong> : <strong>trié</strong> est resté Vrai pendant toute cette passe. Le tableau est donc déjà entièrement trié ! On s'arrête (Jusqu'à trié).`, 9);
                     break;
                 } else {
                     pushStep(arr, sortedSet, [], [], 'found', arr[limite].val,
-                        `✨ Fin de la passe. L'élément <strong>${arr[limite].val}</strong> est à sa position définitive (vert). On décrémente la Limite à ${limite - 1}.`, 8);
+                        `✨ Fin de la passe. L'élément <strong>${arr[limite].val}</strong> est à sa position définitive (vert). On réduit la zone de tri : <strong>N ← N - 1</strong>.`, 8);
                 }
                 limite--;
             }
@@ -466,26 +498,26 @@ const app = createApp({
             for (let i = 0; i < n - 1; i++) {
                 let minIdx = i;
                 pushStepSel(arr, sortedSet, [], [], minIdx, { Min: minIdx }, 'compare', arr[i].val,
-                    `Début de l'étape ${i+1}. On prend le premier élément non trié comme <strong>Minimum Provisoire</strong> : <strong style="color: #06B6D4;">${arr[i].val}</strong> (colonne en Cyan, index ${i}).`, 1);
+                    `Début de l'étape ${i+1}. On initialise le minimum : <strong>Min ← ${i}</strong> (valeur : ${arr[i].val}).`, 1);
                 for (let j = i + 1; j < n; j++) {
                     pushStepSel(arr, sortedSet, [j], [], minIdx, { Min: minIdx, Runner: j }, 'compare', arr[j].val,
-                        `On compare le Minimum Provisoire (<strong style="color: #06B6D4;">${arr[minIdx].val}</strong>) avec l'élément inspecté (<strong style="color: #F59E0B;">${arr[j].val}</strong> à l'index ${j}).`, 3);
+                        `On vérifie si <strong>T[j] < T[Min]</strong> (T[${j}] = ${arr[j].val} comparé à T[${minIdx}] = ${arr[minIdx].val}).`, 3);
                     if (arr[j].val < arr[minIdx].val) {
                         minIdx = j;
                         pushStepSel(arr, sortedSet, [], [], minIdx, { Min: minIdx }, 'found', arr[minIdx].val,
-                            `💡 <strong>Nouveau Minimum Provisoire trouvé !</strong> C'est désormais la valeur <strong style="color: #06B6D4;">${arr[minIdx].val}</strong> (index ${minIdx}).`, 4);
+                            `💡 Nouveau minimum trouvé ! On met à jour : <strong>Min ← ${minIdx}</strong>.`, 4);
                     }
                 }
                 if (minIdx !== i) {
                     pushStepSel(arr, sortedSet, [], [i, minIdx], -1, { Min: minIdx, Runner: i }, 'swap', Math.max(arr[i].val, arr[minIdx].val),
-                        `Le parcours est terminé. Le plus petit élément trouvé est <strong>${arr[minIdx].val}</strong>. On le permute avec le premier élément de la zone non triée (<strong>${arr[i].val}</strong> à l'index ${i}).`, 6);
+                        `Le parcours est terminé. Comme <strong>Min ≠ i</strong> (${minIdx} ≠ ${i}), on va Permuter(T[i], T[Min]).`, 7);
                     const temp = arr[i];
                     arr[i] = arr[minIdx];
                     arr[minIdx] = temp;
-                    pushStepSel(arr, sortedSet, [], [i, minIdx], -1, null, 'found', arr[i].val, `Permutation réalisée avec succès.`, 6);
+                    pushStepSel(arr, sortedSet, [], [i, minIdx], -1, null, 'found', arr[i].val, `Permutation réalisée avec succès.`, 8);
                 } else {
                     pushStepSel(arr, sortedSet, [], [], minIdx, null, 'found', arr[i].val,
-                        `Le premier élément (<strong style="color: #06B6D4;">${arr[i].val}</strong>) est déjà le plus petit de toute la zone. Aucune permutation n'est nécessaire.`, 5);
+                        `Le parcours est terminé. <strong>Min = i</strong>, donc aucune permutation n'est nécessaire.`, 7);
                 }
                 sortedSet.add(i);
             }
@@ -500,29 +532,29 @@ const app = createApp({
                 const keyVal = currentItem.val;
                 arr[i] = { id: `empty-${i}-${uid()}`, val: null };
                 pushStepIns(arr, sortedSet, [], [], currentItem, 'swap', keyVal,
-                    `On prend l'élément <strong>${keyVal}</strong> (index ${i}) et on le place dans la <strong>Variable Clé</strong>. La case ${i} se libère.`, 1);
+                    `On sauvegarde T[${i}] dans la Clé : <strong>Cle ← ${keyVal}</strong> et on initialise <strong>j ← ${i - 1}</strong>.`, 1);
                 let j = i - 1;
                 while (j >= 0) {
                     pushStepIns(arr, sortedSet, [j], [], currentItem, 'compare', arr[j].val,
-                        `On compare la Clé (<strong>${keyVal}</strong>) avec l'élément trié <strong>${arr[j].val}</strong> (index ${j}).`, 3);
+                        `Condition du Tant Que : <strong>j ≥ 0 et T[j] > Cle</strong> ? (j=${j}, T[j]=${arr[j].val}, Cle=${keyVal}).`, 3);
                     if (arr[j].val > keyVal) {
                         pushStepIns(arr, sortedSet, [], [j], currentItem, 'swap', arr[j].val,
-                            `Comme <strong>${arr[j].val} > ${keyVal}</strong>, on décale <strong>${arr[j].val}</strong> d'une case vers la droite.`, 4);
+                            `Condition vraie. On effectue le décalage : <strong>T[j+1] ← T[j]</strong>.`, 4);
                         arr[j + 1] = arr[j];
                         arr[j] = { id: `empty-${j}-${uid()}`, val: null };
                         pushStepIns(arr, sortedSet, [], [j + 1], currentItem, 'compare', 20,
-                            `Décalage réalisé. La case ${j} est maintenant libre.`, 4);
+                            `Décalage effectué. On décrémente l'index : <strong>j ← j - 1</strong> (j vaut ${j - 1}).`, 5);
                         j--;
                     } else {
                         pushStepIns(arr, sortedSet, [j], [], currentItem, 'compare', keyVal,
-                            `<strong>${arr[j].val} ≤ ${keyVal}</strong>. On arrête les décalages : la place d'insertion de la Clé est à l'index ${j+1}.`, 3);
+                            `Condition fausse (T[j] ≤ Cle). On arrête les décalages.`, 3);
                         break;
                     }
                 }
                 arr[j + 1] = currentItem;
                 sortedSet.add(i);
                 pushStepIns(arr, sortedSet, [], [j + 1], null, 'found', keyVal,
-                    `✨ On insère la Clé (<strong>${keyVal}</strong>) dans la case libre à l'index ${j+1}. La zone triée s'agrandit.`, 6);
+                    `✨ <strong>T[j+1] ← Cle</strong> : On insère la Clé (${keyVal}) à sa position définitive.`, 7);
             }
         }
 
@@ -530,25 +562,25 @@ const app = createApp({
             const n = arr.length;
             const eliminated = [];
             pushStepSearch(arr, [], eliminated, -1, null, 'compare', 15,
-                `Lancement de la recherche. On inspecte les cases une par une depuis l'index 0.`, 0);
+                `Initialisation de la recherche : <strong>p ← -1</strong> et <strong>i ← 0</strong>.`, 0);
             let found = false;
             for (let i = 0; i < n; i++) {
                 pushStepSearch(arr, [i], eliminated, -1, { I: i }, 'compare', arr[i].val,
-                    `On vérifie si Tableau[${i}] (<strong>${arr[i].val}</strong>) est égal à la Cible (<strong>${searchTarget.value}</strong>).`, 1);
+                    `On vérifie si <strong>T[i] = Cible</strong> (T[${i}] = ${arr[i].val} comparé à ${searchTarget.value}).`, 3);
                 if (arr[i].val === searchTarget.value) {
                     pushStepSearch(arr, [], eliminated, i, { I: i }, 'found', 45,
-                        `🎉 <strong>SUCCÈS ! Cible trouvée !</strong> L'élément <strong>${searchTarget.value}</strong> est présent à l'index <strong>${i}</strong>.`, 2);
+                        `🎉 <strong>SUCCÈS !</strong> T[i] = Cible. On enregistre la position : <strong>p ← ${i}</strong>.`, 3);
                     found = true;
                     break;
                 } else {
                     eliminated.push(i);
                     pushStepSearch(arr, [], eliminated, -1, { I: i }, 'compare', 10,
-                        `<strong>${arr[i].val} ≠ ${searchTarget.value}</strong>. Cet élément n'est pas notre cible. On passe à la case suivante.`, 0);
+                        `T[i] ≠ Cible. On incrémente l'index pour continuer : <strong>i ← i + 1</strong> (i vaut ${i + 1}).`, 4);
                 }
             }
             if (!found) {
                 pushStepSearch(arr, [], eliminated, -1, null, 'fail', 10,
-                    `❌ <strong>ÉCHEC</strong> : Nous avons parcouru la totalité du tableau. L'élément <strong>${searchTarget.value}</strong> est totalement introuvable.`, 3);
+                    `❌ <strong>ÉCHEC</strong> : La boucle s'est terminée avec p toujours à -1. L'élément est introuvable, on va <strong>Retourner p</strong>.`, 6);
             }
         }
 
@@ -557,34 +589,34 @@ const app = createApp({
             let g = 0, d = n - 1;
             const eliminated = [];
             pushStepSearch(arr, [], eliminated, -1, { G: g, D: d }, 'compare', 20,
-                `Initialisation des pointeurs : <strong>Gauche = 0</strong> et <strong>Droite = ${d}</strong>. L'intervalle actif de recherche est [0 ... ${d}].`, 2);
+                `Initialisation : <strong>G ← 0</strong>, <strong>D ← ${d}</strong> et <strong>p ← -1</strong>. L'intervalle actif est [0 ... ${d}].`, 0);
             let found = false;
             while (g <= d) {
                 const m = Math.floor((g + d) / 2);
                 pushStepSearch(arr, [m], eliminated, -1, { G: g, D: d, M: m }, 'compare', arr[m].val,
-                    `Intervalle de recherche : [${g} ... ${d}]. On calcule l'index du Milieu : <strong>M = Floor(${g} + ${d}) / 2 = ${m}</strong> (valeur : ${arr[m].val}).`, 3);
+                    `On calcule l'index du Milieu : <strong>M ← (G + D) div 2</strong> = ${m} (T[M] = ${arr[m].val}).`, 4);
                 pushStepSearch(arr, [m], eliminated, -1, { G: g, D: d, M: m }, 'compare', arr[m].val,
-                    `On compare la valeur du Milieu (<strong>${arr[m].val}</strong>) avec la Cible (<strong>${searchTarget.value}</strong>).`, 4);
+                    `On vérifie si <strong>T[M] = Cible</strong> (${arr[m].val} = ${searchTarget.value} ?).`, 5);
                 if (arr[m].val === searchTarget.value) {
                     pushStepSearch(arr, [], eliminated, m, { G: g, D: d, M: m }, 'found', 45,
-                        `🎉 <strong>SUCCÈS ! Cible trouvée !</strong> La valeur <strong>${searchTarget.value}</strong> est positionnée exactement au Milieu (index <strong>${m}</strong>).`, 5);
+                        `🎉 <strong>SUCCÈS !</strong> T[M] = Cible. On enregistre la position : <strong>p ← M</strong> (${m}).`, 6);
                     found = true; break;
                 } else if (arr[m].val < searchTarget.value) {
                     for (let k = g; k <= m; k++) eliminated.push(k);
                     pushStepSearch(arr, [], eliminated, -1, { G: m + 1, D: d, M: m }, 'swap', arr[m].val,
-                        `Comme <strong>${arr[m].val} < ${searchTarget.value}</strong>, on élimine toute la moitié gauche [${g} ... ${m}]. On déplace le pointeur <strong>Gauche = ${m + 1}</strong>.`, 7);
+                        `Comme T[M] < Cible, la cible est à droite. On ajuste : <strong>G ← M + 1</strong> (${m + 1}).`, 8);
                     g = m + 1;
                 } else {
                     for (let k = m; k <= d; k++) eliminated.push(k);
                     pushStepSearch(arr, [], eliminated, -1, { G: g, D: m - 1, M: m }, 'swap', arr[m].val,
-                        `Comme <strong>${arr[m].val} > ${searchTarget.value}</strong>, on élimine toute la moitié droite [${m} ... ${d}]. On déplace le pointeur <strong>Droite = ${m - 1}</strong>.`, 9);
+                        `Comme T[M] > Cible, la cible est à gauche. On ajuste : <strong>D ← M - 1</strong> (${m - 1}).`, 10);
                     d = m - 1;
                 }
             }
             if (!found) {
                 for (let k = 0; k < n; k++) { if (!eliminated.includes(k)) eliminated.push(k); }
                 pushStepSearch(arr, [], eliminated, -1, { G: g, D: d }, 'fail', 10,
-                    `❌ <strong>ÉCHEC</strong> : Les pointeurs se sont croisés (Gauche > Droite : ${g} > ${d}). L'intervalle est désormais vide. L'élément <strong>${searchTarget.value}</strong> n'est pas dans le tableau.`, 10);
+                    `❌ <strong>ÉCHEC</strong> : G > D (${g} > ${d}). La boucle s'arrête, p reste à -1. L'élément est introuvable.`, 13);
             }
         }
 
@@ -669,6 +701,14 @@ const app = createApp({
             const step = simulationSteps.value[idx];
             if (step) {
                 playTone(step.actionToneVal || 20, step.actionTone || 'compare');
+                nextTick(() => {
+                    if (step.highlightCode !== -1) {
+                        const lineEl = document.getElementById('code-line-' + step.highlightCode);
+                        if (lineEl) {
+                            lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                });
             }
         }
 
@@ -865,6 +905,39 @@ const app = createApp({
             }
         }
 
+        function highlightSyntax(line) {
+            if (!line) return '';
+            let res = line;
+            let comment = '';
+            if (res.includes('//')) {
+                let idx = res.indexOf('//');
+                comment = `<span class="code-comment">${res.substring(idx)}</span>`;
+                res = res.substring(0, idx);
+            }
+            
+            const keywords = ['Fin', 'Pour', 'Faire', 'Si', 'Alors', 'Sinon', 'Tant Que', 'Répéter', "Jusqu'à", 'Retourner'];
+            keywords.forEach(kw => {
+                res = ' ' + res + ' ';
+                res = res.split(' ' + kw + ' ').join(' <span class="code-kw">' + kw + '</span> ');
+                res = res.substring(1, res.length - 1);
+            });
+
+            ['div', 'Vrai', 'Faux', 'et'].forEach(kw => {
+                res = ' ' + res + ' ';
+                res = res.split(' ' + kw + ' ').join(' <span class="code-kw2">' + kw + '</span> ');
+                res = res.substring(1, res.length - 1);
+            });
+
+            res = res.replace(/Permuter/g, '<span class="code-func">Permuter</span>');
+            res = res.replace(/←/g, '<span class="code-op">←</span>');
+            res = res.replace(/T\[/g, '<span class="code-var">T</span><span class="code-bracket">[</span>');
+            res = res.replace(/\]/g, '<span class="code-bracket">]</span>');
+
+            res = res + comment;
+            res = res.replace(/^( +)/, match => '&nbsp;'.repeat(match.length));
+            return res;
+        }
+
         // ---- Initialisation ----
         onMounted(() => {
             generateRandomArray(arraySize.value);
@@ -899,7 +972,7 @@ const app = createApp({
             onCustomArray, onTargetPresent, onTargetAbsent, onTargetChange,
             getItemState, getItemTooltip, getItemHeight, getItemLeft, getPointerX,
             stepNext, stepPrev, goToStart, goToEnd, togglePlay,
-            copyCode, onSpeedChange,
+            copyCode, onSpeedChange, highlightSyntax,
             // Constantes exposées pour le template
             ITEM_WIDTH, ITEM_GAP, CONTAINER_MAX_HEIGHT,
             // Méthodes pour les vues

@@ -153,71 +153,6 @@
       <!-- Main Visualization Content -->
       <div class="visualization-card">
 
-        <!-- Pedagogical Commentary & Playback Controls -->
-        <div class="commentary-card">
-          <div class="comment-header">
-            <span>Journal des Explications Algorithmiques en Direct</span>
-            <div class="live-indicator">
-              <div class="live-dot"></div>
-              <span style="color: #10B981;">TELEMETRIE PÉDAGOGIQUE</span>
-            </div>
-          </div>
-
-          <div class="comment-text" id="comment-text" v-html="currentStep ? currentStep.comment : defaultCommentText">
-          </div>
-
-          <div class="playback-controls">
-            <div class="step-progress-container">
-              <input type="range" id="slider-step" class="step-progress-bar" min="0" :max="simulationSteps.length - 1"
-                :value="currentStepIndex" @input="renderStep(parseInt($event.target.value))">
-              <span class="step-counter"><span id="step-current">{{ currentStepIndex }}</span> / <span
-                  id="step-total">{{ simulationSteps.length > 0 ? simulationSteps.length - 1 : 0 }}</span></span>
-            </div>
-
-            <div class="playback-buttons">
-              <button id="btn-start" class="btn btn-secondary" title="Début de la simulation"
-                :disabled="currentStepIndex === 0" @click="goToStart">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="19 20 9 12 19 4 19 20"></polygon>
-                  <line x1="5" y1="19" x2="5" y2="5"></line>
-                </svg>
-              </button>
-              <button id="btn-prev" class="btn btn-secondary" title="Étape précédente"
-                :disabled="currentStepIndex === 0" @click="stepPrev">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="19 20 9 12 19 4 19 20"></polygon>
-                </svg>
-              </button>
-              <button id="btn-play" class="btn" :class="isPlaying ? 'btn-secondary' : 'btn-primary'"
-                style="padding-left: 32px; padding-right: 32px; font-size: 1.05rem;" @click="togglePlay">
-                <svg id="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2" :style="{ display: isPlaying ? 'none' : 'inline-block' }">
-                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                <svg id="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2" :style="{ display: isPlaying ? 'inline-block' : 'none' }">
-                  <rect x="6" y="4" width="4" height="16"></rect>
-                  <rect x="14" y="4" width="4" height="16"></rect>
-                </svg>
-                <span id="label-play">{{ isPlaying ? 'Pause' : 'Lecture' }}</span>
-              </button>
-              <button id="btn-next" class="btn btn-secondary" title="Étape suivante"
-                :disabled="currentStepIndex >= simulationSteps.length - 1" @click="stepNext">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
-                </svg>
-              </button>
-              <button id="btn-end" class="btn btn-secondary" title="Fin de la simulation"
-                :disabled="currentStepIndex >= simulationSteps.length - 1" @click="goToEnd">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
-                  <line x1="19" y1="5" x2="19" y2="19"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
         <!-- The High-Tech Arena -->
         <div class="arena" id="arena-box">
 
@@ -310,32 +245,76 @@
           </div>
         </div>
 
-      </div>
-
-      <!-- Sidebar Info -->
-      <div class="sidebar">
-
-        <!-- IDE Code Editor Card -->
-        <div class="ide-card">
-          <div class="ide-topbar">
-            <div class="ide-window-buttons">
-              <div class="ide-dot ide-dot-red"></div>
-              <div class="ide-dot ide-dot-yellow"></div>
-              <div class="ide-dot ide-dot-green"></div>
+        <!-- Pedagogical Commentary & Playback Controls -->
+        <div class="commentary-card">
+          <div class="comment-header">
+            <span>Journal des Explications Algorithmiques en Direct</span>
+            <div class="live-indicator">
+              <div class="live-dot"></div>
+              <span style="color: #10B981;">TELEMETRIE PÉDAGOGIQUE</span>
             </div>
-            <span class="ide-title" id="ide-title-text">{{ algoData.title }}</span>
-            <button id="btn-copy-code" class="btn-copy" @click="copyCode"
-              title="Copier le pseudocode dans le presse-papier">📋 Copier</button>
           </div>
-          <div class="pseudocode-box" id="pseudocode-box">
-            <div v-for="(line, idx) in algoData.code" :key="'code-' + idx" class="code-line" :id="'code-line-' + idx"
-              :class="{ active: currentStep && currentStep.highlightCode === idx }">
-              <span class="line-number">{{ idx + 1 }}</span>
-              <span>{{ line }}</span>
+
+          <div class="comment-text" id="comment-text" v-html="currentStep ? currentStep.comment : defaultCommentText">
+          </div>
+
+          <div class="playback-controls">
+            <div class="step-progress-container">
+              <input type="range" id="slider-step" class="step-progress-bar" min="0" :max="simulationSteps.length - 1"
+                :value="currentStepIndex" @input="renderStep(parseInt($event.target.value))">
+              <span class="step-counter"><span id="step-current">{{ currentStepIndex }}</span> / <span
+                  id="step-total">{{ simulationSteps.length > 0 ? simulationSteps.length - 1 : 0 }}</span></span>
+            </div>
+
+            <div class="playback-buttons">
+              <button id="btn-start" class="btn btn-secondary" title="Début de la simulation"
+                :disabled="currentStepIndex === 0" @click="goToStart">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                  <line x1="5" y1="19" x2="5" y2="5"></line>
+                </svg>
+              </button>
+              <button id="btn-prev" class="btn btn-secondary" title="Étape précédente"
+                :disabled="currentStepIndex === 0" @click="stepPrev">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                </svg>
+              </button>
+              <button id="btn-play" class="btn" :class="isPlaying ? 'btn-secondary' : 'btn-primary'"
+                style="padding-left: 32px; padding-right: 32px; font-size: 1.05rem;" @click="togglePlay">
+                <svg id="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" :style="{ display: isPlaying ? 'none' : 'inline-block' }">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <svg id="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" :style="{ display: isPlaying ? 'inline-block' : 'none' }">
+                  <rect x="6" y="4" width="4" height="16"></rect>
+                  <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+                <span id="label-play">{{ isPlaying ? 'Pause' : 'Lecture' }}</span>
+              </button>
+              <button id="btn-next" class="btn btn-secondary" title="Étape suivante"
+                :disabled="currentStepIndex >= simulationSteps.length - 1" @click="stepNext">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                </svg>
+              </button>
+              <button id="btn-end" class="btn btn-secondary" title="Fin de la simulation"
+                :disabled="currentStepIndex >= simulationSteps.length - 1" @click="goToEnd">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                  <line x1="19" y1="5" x2="19" y2="19"></line>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
 
+      </div>
+
+      <!-- Sidebar Info -->
+      <div class="sidebar">
+        
         <!-- Algorithm Description Card -->
         <div class="info-card">
           <h3>
@@ -367,6 +346,27 @@
           </div>
 
           <div class="pedagogical-notes" id="pedagogical-notes" v-html="algoData.notes">
+          </div>
+        </div>
+
+        <!-- IDE Code Editor Card -->
+        <div class="ide-card">
+          <div class="ide-topbar">
+            <div class="ide-window-buttons">
+              <div class="ide-dot ide-dot-red"></div>
+              <div class="ide-dot ide-dot-yellow"></div>
+              <div class="ide-dot ide-dot-green"></div>
+            </div>
+            <span class="ide-title" id="ide-title-text">{{ algoData.title }}</span>
+            <button id="btn-copy-code" class="btn-copy" @click="copyCode"
+              title="Copier le pseudocode dans le presse-papier">📋 Copier</button>
+          </div>
+          <div class="pseudocode-box" id="pseudocode-box">
+            <div v-for="(line, idx) in algoData.code" :key="'code-' + idx" class="code-line" :id="'code-line-' + idx"
+              :class="{ active: currentStep && currentStep.highlightCode === idx }">
+              <span class="line-number">{{ idx + 1 }}</span>
+              <span v-html="highlightSyntax(line)"></span>
+            </div>
           </div>
         </div>
 
