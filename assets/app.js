@@ -118,6 +118,17 @@ const app = createApp({
         const arraySize = ref(8);
         const speedLevel = ref(3);
         const customInput = ref('');
+        const isDarkMode = ref(true);
+        const visualMode = ref('both');
+
+        function toggleTheme() {
+            isDarkMode.value = !isDarkMode.value;
+            if (isDarkMode.value) {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        }
 
         let playInterval = null;
         let audioCtx = null;
@@ -140,6 +151,50 @@ const app = createApp({
         const totalWidth = computed(() => {
             const len = currentArray.value.length;
             return len * ITEM_WIDTH + (len - 1) * ITEM_GAP;
+        });
+
+        const sortZones = computed(() => {
+            if (currentMode.value !== 'sort' || !currentStep.value) return null;
+            const n = currentArray.value.length;
+            const sortedCount = currentStep.value.sortedIndices.length;
+            
+            if (sortedCount === n) {
+                return {
+                    sorted: { left: 0, width: n * ITEM_WIDTH + (n - 1) * ITEM_GAP },
+                    unsorted: null
+                };
+            }
+            if (sortedCount === 0) {
+                return {
+                    sorted: null,
+                    unsorted: { left: 0, width: n * ITEM_WIDTH + (n - 1) * ITEM_GAP }
+                };
+            }
+
+            if (currentAlgo.value === 'bubble') {
+                const unsortedCount = n - sortedCount;
+                return {
+                    sorted: { 
+                        left: unsortedCount * (ITEM_WIDTH + ITEM_GAP), 
+                        width: sortedCount * ITEM_WIDTH + (sortedCount - 1) * ITEM_GAP 
+                    },
+                    unsorted: { 
+                        left: 0, 
+                        width: unsortedCount * ITEM_WIDTH + (unsortedCount - 1) * ITEM_GAP 
+                    }
+                };
+            } else {
+                return {
+                    sorted: { 
+                        left: 0, 
+                        width: sortedCount * ITEM_WIDTH + (sortedCount - 1) * ITEM_GAP 
+                    },
+                    unsorted: { 
+                        left: sortedCount * (ITEM_WIDTH + ITEM_GAP), 
+                        width: (n - sortedCount) * ITEM_WIDTH + (n - sortedCount - 1) * ITEM_GAP 
+                    }
+                };
+            }
         });
 
         const maxVal = computed(() => {
@@ -208,6 +263,24 @@ const app = createApp({
             return { opacity: 1, left: x + 'px', top: '25px', transform: 'translateX(-50%) scale(1.08)' };
         });
 
+        const selIPointerStyle = computed(() => {
+            const step = currentStep.value;
+            if (!step || !step.pointers || currentAlgo.value !== 'selection') {
+                return { opacity: 0 };
+            }
+            const arr = currentArray.value;
+            const idx = step.pointers.I;
+            if (idx === undefined || idx < 0 || idx >= arr.length) {
+                return { opacity: 0 };
+            }
+            const arena = document.getElementById('arena-box');
+            if (!arena) return { opacity: 0 };
+            const arenaWidth = arena.offsetWidth;
+            const innerLeft = (arenaWidth - totalWidth.value) / 2;
+            const x = innerLeft + idx * (ITEM_WIDTH + ITEM_GAP) + ITEM_WIDTH / 2;
+            return { opacity: 1, left: x + 'px', top: '10px', transform: 'translateX(-50%) scale(1.08)' };
+        });
+
         const selMinPointerStyle = computed(() => {
             const step = currentStep.value;
             if (!step || !step.pointers || currentAlgo.value !== 'selection') {
@@ -223,7 +296,9 @@ const app = createApp({
             const arenaWidth = arena.offsetWidth;
             const innerLeft = (arenaWidth - totalWidth.value) / 2;
             const x = innerLeft + idx * (ITEM_WIDTH + ITEM_GAP) + ITEM_WIDTH / 2;
-            return { opacity: 1, left: x + 'px', top: '10px', transform: 'translateX(-50%) scale(1.08)' };
+            const iIdx = step.pointers.I;
+            const top = (idx === iIdx) ? '48px' : '10px';
+            return { opacity: 1, left: x + 'px', top, transform: 'translateX(-50%) scale(1.08)' };
         });
 
         const selRunnerPointerStyle = computed(() => {
@@ -242,7 +317,10 @@ const app = createApp({
             const innerLeft = (arenaWidth - totalWidth.value) / 2;
             const x = innerLeft + idx * (ITEM_WIDTH + ITEM_GAP) + ITEM_WIDTH / 2;
             const minIdx = step.pointers.Min;
-            const top = (idx === minIdx) ? '48px' : '10px';
+            const iIdx = step.pointers.I;
+            let top = '10px';
+            if (idx === minIdx && idx === iIdx) top = '86px';
+            else if (idx === minIdx || idx === iIdx) top = '48px';
             return { opacity: 1, left: x + 'px', top, transform: 'translateX(-50%) scale(1.08)' };
         });
 
@@ -437,7 +515,8 @@ const app = createApp({
                     actionTone: 'found',
                     actionToneVal: 40,
                     comment: "🎉 <strong>Tri terminé avec succès !</strong> Tous les éléments sont maintenant ordonnés à leur position définitive.",
-                    highlightCode: -1
+                    highlightCode: -1,
+                    isEndOfPass: true
                 });
             }
         }
@@ -456,6 +535,7 @@ const app = createApp({
                 swapped = false;
                 pushStep(arr, sortedSet, [], [], 'compare', 20,
                     `Nouvelle passe. On suppose que le tableau est trié : on initialise <strong>trié ← Vrai</strong>.`, 1);
+                simulationSteps.value[simulationSteps.value.length - 1].isEndOfPass = true;
 
                 for (let j = 0; j < limite; j++) {
                     pushStep(arr, sortedSet, [j, j + 1], [], 'compare', arr[j].val,
@@ -482,10 +562,12 @@ const app = createApp({
                     for (let k = 0; k <= limite; k++) sortedSet.add(k);
                     pushStep(arr, sortedSet, [], [], 'found', 40,
                         `💡 <strong>Optimisation activée</strong> : <strong>trié</strong> est resté Vrai pendant toute cette passe. Le tableau est donc déjà entièrement trié ! On s'arrête (Jusqu'à trié).`, 9);
+                    simulationSteps.value[simulationSteps.value.length - 1].isEndOfPass = true;
                     break;
                 } else {
                     pushStep(arr, sortedSet, [], [], 'found', arr[limite].val,
                         `✨ Fin de la passe. L'élément <strong>${arr[limite].val}</strong> est à sa position définitive (vert). On réduit la zone de tri : <strong>N ← N - 1</strong>.`, 8);
+                    simulationSteps.value[simulationSteps.value.length - 1].isEndOfPass = true;
                 }
                 limite--;
             }
@@ -497,26 +579,29 @@ const app = createApp({
             let sortedSet = new Set();
             for (let i = 0; i < n - 1; i++) {
                 let minIdx = i;
-                pushStepSel(arr, sortedSet, [], [], minIdx, { Min: minIdx }, 'compare', arr[i].val,
+                pushStepSel(arr, sortedSet, [], [], minIdx, { I: i, Min: minIdx }, 'compare', arr[i].val,
                     `Début de l'étape ${i+1}. On initialise le minimum : <strong>Min ← ${i}</strong> (valeur : ${arr[i].val}).`, 1);
+                if (i > 0) {
+                    simulationSteps.value[simulationSteps.value.length - 1].isEndOfPass = true;
+                }
                 for (let j = i + 1; j < n; j++) {
-                    pushStepSel(arr, sortedSet, [j], [], minIdx, { Min: minIdx, Runner: j }, 'compare', arr[j].val,
+                    pushStepSel(arr, sortedSet, [j], [], minIdx, { I: i, Min: minIdx, Runner: j }, 'compare', arr[j].val,
                         `On vérifie si <strong>T[j] < T[Min]</strong> (T[${j}] = ${arr[j].val} comparé à T[${minIdx}] = ${arr[minIdx].val}).`, 3);
                     if (arr[j].val < arr[minIdx].val) {
                         minIdx = j;
-                        pushStepSel(arr, sortedSet, [], [], minIdx, { Min: minIdx }, 'found', arr[minIdx].val,
+                        pushStepSel(arr, sortedSet, [], [], minIdx, { I: i, Min: minIdx }, 'found', arr[minIdx].val,
                             `💡 Nouveau minimum trouvé ! On met à jour : <strong>Min ← ${minIdx}</strong>.`, 4);
                     }
                 }
                 if (minIdx !== i) {
-                    pushStepSel(arr, sortedSet, [], [i, minIdx], -1, { Min: minIdx, Runner: i }, 'swap', Math.max(arr[i].val, arr[minIdx].val),
+                    pushStepSel(arr, sortedSet, [], [i, minIdx], -1, { I: i, Min: minIdx }, 'swap', Math.max(arr[i].val, arr[minIdx].val),
                         `Le parcours est terminé. Comme <strong>Min ≠ i</strong> (${minIdx} ≠ ${i}), on va Permuter(T[i], T[Min]).`, 7);
                     const temp = arr[i];
                     arr[i] = arr[minIdx];
                     arr[minIdx] = temp;
-                    pushStepSel(arr, sortedSet, [], [i, minIdx], -1, null, 'found', arr[i].val, `Permutation réalisée avec succès.`, 8);
+                    pushStepSel(arr, sortedSet, [], [i, minIdx], -1, { I: i, Min: minIdx }, 'found', arr[i].val, `Permutation réalisée avec succès.`, 8);
                 } else {
-                    pushStepSel(arr, sortedSet, [], [], minIdx, null, 'found', arr[i].val,
+                    pushStepSel(arr, sortedSet, [], [], minIdx, { I: i, Min: minIdx }, 'found', arr[i].val,
                         `Le parcours est terminé. <strong>Min = i</strong>, donc aucune permutation n'est nécessaire.`, 7);
                 }
                 sortedSet.add(i);
@@ -533,6 +618,7 @@ const app = createApp({
                 arr[i] = { id: `empty-${i}-${uid()}`, val: null };
                 pushStepIns(arr, sortedSet, [], [], currentItem, 'swap', keyVal,
                     `On sauvegarde T[${i}] dans la Clé : <strong>Cle ← ${keyVal}</strong> et on initialise <strong>j ← ${i - 1}</strong>.`, 1);
+                simulationSteps.value[simulationSteps.value.length - 1].isEndOfPass = true;
                 let j = i - 1;
                 while (j >= 0) {
                     pushStepIns(arr, sortedSet, [j], [], currentItem, 'compare', arr[j].val,
@@ -734,25 +820,49 @@ const app = createApp({
             renderStep(simulationSteps.value.length - 1);
         }
 
-        function togglePlay() {
-            if (isPlaying.value) {
-                pauseSimulation();
-            } else {
-                if (currentStepIndex.value >= simulationSteps.value.length - 1) renderStep(0);
-                startSimulation();
+        let playTarget = 'end'; // 'end' ou 'pass'
+
+        function playPass() {
+            if (currentStepIndex.value >= simulationSteps.value.length - 1) return;
+            pauseSimulation();
+            let targetIdx = currentStepIndex.value + 1;
+            while (targetIdx < simulationSteps.value.length - 1 && (!simulationSteps.value[targetIdx] || !simulationSteps.value[targetIdx].isEndOfPass)) {
+                targetIdx++;
             }
+            renderStep(targetIdx);
         }
 
-        function startSimulation() {
-            isPlaying.value = true;
-            const intervalMs = [1500, 1000, 600, 300, 120][speedLevel.value - 1];
-            playInterval = setInterval(() => {
-                if (currentStepIndex.value < simulationSteps.value.length - 1) {
-                    stepNext();
-                } else {
-                    pauseSimulation();
-                }
-            }, intervalMs);
+        function prevPass() {
+            if (currentStepIndex.value <= 0) return;
+            pauseSimulation();
+            let targetIdx = currentStepIndex.value - 1;
+            while (targetIdx > 0 && (!simulationSteps.value[targetIdx] || !simulationSteps.value[targetIdx].isEndOfPass)) {
+                targetIdx--;
+            }
+            renderStep(targetIdx);
+        }
+
+        function togglePlay() {
+            if (currentStepIndex.value >= simulationSteps.value.length - 1) {
+                renderStep(0);
+            }
+            if (!isPlaying.value) {
+                playTarget = 'end';
+                isPlaying.value = true;
+                const stepDelay = [1200, 800, 500, 200, 50][speedLevel.value - 1];
+                playInterval = setInterval(() => {
+                    if (currentStepIndex.value < simulationSteps.value.length - 1) {
+                        stepNext();
+                        if (playTarget === 'pass' && simulationSteps.value[currentStepIndex.value] && simulationSteps.value[currentStepIndex.value].isEndOfPass) {
+                            pauseSimulation();
+                        }
+                    } else {
+                        pauseSimulation();
+                    }
+                }, stepDelay);
+            } else {
+                pauseSimulation();
+            }
         }
 
         function pauseSimulation() {
@@ -840,7 +950,7 @@ const app = createApp({
         }
 
         function getItemState(item, idx) {
-            const step = currentStep.value;
+            const step = simulationSteps.value[currentStepIndex.value];
             if (!step) return 'unsorted';
             if (isSearch.value) {
                 if (step.foundIndex === idx) return 'found';
@@ -938,9 +1048,53 @@ const app = createApp({
             return res;
         }
 
+        function saveState() {
+            const state = {
+                currentMode: currentMode.value,
+                currentAlgo: currentAlgo.value,
+                initialValues: initialValues.value,
+                searchTarget: searchTarget.value,
+                arraySize: arraySize.value,
+                isDarkMode: isDarkMode.value,
+                visualMode: visualMode.value,
+            };
+            localStorage.setItem('sim_algo_state', JSON.stringify(state));
+        }
+
+        function loadState() {
+            try {
+                const stateStr = localStorage.getItem('sim_algo_state');
+                if (stateStr) {
+                    const state = JSON.parse(stateStr);
+                    if (state.currentMode) currentMode.value = state.currentMode;
+                    if (state.currentAlgo) currentAlgo.value = state.currentAlgo;
+                    if (state.initialValues && Array.isArray(state.initialValues)) {
+                        initialValues.value = state.initialValues;
+                    }
+                    if (state.searchTarget !== undefined) searchTarget.value = state.searchTarget;
+                    if (state.arraySize !== undefined) arraySize.value = state.arraySize;
+                    if (state.isDarkMode !== undefined) {
+                        isDarkMode.value = state.isDarkMode;
+                        if (!isDarkMode.value) {
+                            document.documentElement.setAttribute('data-theme', 'light');
+                        }
+                    }
+                    if (state.visualMode) visualMode.value = state.visualMode;
+                    return true;
+                }
+            } catch (e) {
+                console.error("Erreur au chargement de l'état", e);
+            }
+            return false;
+        }
+
         // ---- Initialisation ----
         onMounted(() => {
-            generateRandomArray(arraySize.value);
+            if (!loadState() || initialValues.value.length === 0) {
+                generateRandomArray(arraySize.value);
+            } else {
+                checkBinaryInvariant();
+            }
             runAlgorithm();
             renderStep(0);
 
@@ -957,21 +1111,25 @@ const app = createApp({
             // Play tone when step changes (handled in renderStep)
         });
 
+        watch([currentMode, currentAlgo, initialValues, searchTarget, arraySize, isDarkMode, visualMode], () => {
+            saveState();
+        }, { deep: true });
+
         // Expose refs for template
         return {
             // State
             currentMode, currentAlgo, searchTarget, soundEnabled, arraySize, speedLevel,
-            customInput, currentStepIndex, isPlaying, simulationSteps,
+            customInput, currentStepIndex, isPlaying, simulationSteps, isDarkMode, visualMode,
             // Computed
             currentStep, currentArray, isSearch, algoData, totalWidth, maxVal,
             isSelectionAlgo, isInsertionAlgo, algoCategoryLabel, defaultCommentText,
-            binaryPointerStyle, seqPointerStyle, selMinPointerStyle, selRunnerPointerStyle,
-            tempItemLeft, tempItemHeight,
+            binaryPointerStyle, seqPointerStyle, selIPointerStyle, selMinPointerStyle, selRunnerPointerStyle,
+            tempItemLeft, tempItemHeight, sortZones,
             // Methods
             switchMode, switchAlgo, onSizeChange, onRandom, onPreset,
             onCustomArray, onTargetPresent, onTargetAbsent, onTargetChange,
             getItemState, getItemTooltip, getItemHeight, getItemLeft, getPointerX,
-            stepNext, stepPrev, goToStart, goToEnd, togglePlay,
+            stepNext, stepPrev, goToStart, goToEnd, togglePlay, playPass, prevPass, toggleTheme,
             copyCode, onSpeedChange, highlightSyntax,
             // Constantes exposées pour le template
             ITEM_WIDTH, ITEM_GAP, CONTAINER_MAX_HEIGHT,
