@@ -581,9 +581,6 @@ const app = createApp({
                 let minIdx = i;
                 pushStepSel(arr, sortedSet, [], [], minIdx, { I: i, Min: minIdx }, 'compare', arr[i].val,
                     `Début de l'étape ${i+1}. On initialise le minimum : <strong>Min ← ${i}</strong> (valeur : ${arr[i].val}).`, 1);
-                if (i > 0) {
-                    simulationSteps.value[simulationSteps.value.length - 1].isEndOfPass = true;
-                }
                 for (let j = i + 1; j < n; j++) {
                     pushStepSel(arr, sortedSet, [j], [], minIdx, { I: i, Min: minIdx, Runner: j }, 'compare', arr[j].val,
                         `On vérifie si <strong>T[j] < T[Min]</strong> (T[${j}] = ${arr[j].val} comparé à T[${minIdx}] = ${arr[minIdx].val}).`, 3);
@@ -596,6 +593,7 @@ const app = createApp({
                 if (minIdx !== i) {
                     pushStepSel(arr, sortedSet, [], [i, minIdx], -1, { I: i, Min: minIdx }, 'swap', Math.max(arr[i].val, arr[minIdx].val),
                         `Le parcours est terminé. Comme <strong>Min ≠ i</strong> (${minIdx} ≠ ${i}), on va Permuter(T[i], T[Min]).`, 7);
+                    simulationSteps.value[simulationSteps.value.length - 1].isEndOfPass = true;
                     const temp = arr[i];
                     arr[i] = arr[minIdx];
                     arr[minIdx] = temp;
@@ -603,6 +601,7 @@ const app = createApp({
                 } else {
                     pushStepSel(arr, sortedSet, [], [], minIdx, { I: i, Min: minIdx }, 'found', arr[i].val,
                         `Le parcours est terminé. <strong>Min = i</strong>, donc aucune permutation n'est nécessaire.`, 7);
+                    simulationSteps.value[simulationSteps.value.length - 1].isEndOfPass = true;
                 }
                 sortedSet.add(i);
             }
